@@ -1,7 +1,8 @@
 InstaMaterial
 =============
 
-更改自https://github.com/frogermcs/InstaMaterial.git 引入https://github.com/commonsguy/cwac-camera.git组件源码
+更改自https://github.com/frogermcs/InstaMaterial.git 
+引入https://github.com/commonsguy/cwac-camera.git  组件源码
 修改针对自动对焦进行了优化
 
 Source code for implementation of Instagram with Material Design (based on Emmanuel Pacamalan's concept). 
