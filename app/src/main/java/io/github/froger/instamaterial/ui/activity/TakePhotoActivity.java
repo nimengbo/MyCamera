@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -23,7 +24,9 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.commonsware.cwac.camera.CameraHost;
@@ -48,12 +51,13 @@ import io.github.froger.instamaterial.ui.view.RevealBackgroundView;
 public class TakePhotoActivity extends BaseActivity implements RevealBackgroundView.OnStateChangeListener,
         CameraHostProvider {
     public static final String ARG_REVEAL_START_LOCATION = "reveal_start_location";
-
+    private static final String TAG = "insCamera";
     private static final Interpolator ACCELERATE_INTERPOLATOR = new AccelerateInterpolator();
     private static final Interpolator DECELERATE_INTERPOLATOR = new DecelerateInterpolator();
     private static final int STATE_TAKE_PHOTO = 0;
     private static final int STATE_SETUP_PHOTO = 1;
-
+    private boolean isClickTakePhoto = false;
+    private boolean isFront = false;
     @InjectView(R.id.vRevealBackground)
     RevealBackgroundView vRevealBackground;
     @InjectView(R.id.vPhotoRoot)
@@ -72,6 +76,8 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
     RecyclerView rvFilters;
     @InjectView(R.id.btnTakePhoto)
     Button btnTakePhoto;
+    @InjectView(R.id.ib_switch)
+    ImageButton ib_switch;
 
     private boolean pendingIntro;
     private int currentState;
@@ -101,6 +107,13 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
                 vUpperPanel.setTranslationY(-vUpperPanel.getHeight());
                 vLowerPanel.setTranslationY(vLowerPanel.getHeight());
                 return true;
+            }
+        });
+        cameraView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("insCamera", "click to focus");
+                cameraView.autoFocus(autoFocusCallback);
             }
         });
     }
@@ -154,10 +167,29 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
         cameraView.onPause();
     }
 
+    @OnClick(R.id.ib_switch)
+    public void onSwitchClick(){
+        cameraView.switchCamera();
+    }
+
     @OnClick(R.id.btnTakePhoto)
     public void onTakePhotoClick() {
-        btnTakePhoto.setEnabled(false);
-        cameraView.takePicture(true, true);
+        if (cameraView.isAutoFocusAvailable()) {
+            Log.d(TAG, "focus mode : CONTINUOUS_PICTURE");
+            cameraView.takePicture(true, true);
+        } else {
+            cameraView.autoFocus(new Camera.AutoFocusCallback() {
+                @Override
+                public void onAutoFocus(boolean success, Camera camera) {
+                    if (success || cameraView.getCameraId() == 1) {
+                        Log.d(TAG, "focus success");
+                        cameraView.takePicture(true, true);
+                    } else {
+                        Toast.makeText(TakePhotoActivity.this, "对焦失败,请重新拍摄", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
         animateShutter();
     }
 
@@ -221,6 +253,11 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
         }
 
         @Override
+        protected boolean useFrontFacingCamera() {
+            return isFront;
+        }
+
+        @Override
         public boolean useFullBleedPreview() {
             return true;
         }
@@ -234,6 +271,7 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
         public Camera.Parameters adjustPreviewParameters(Camera.Parameters parameters) {
             Camera.Parameters parameters1 = super.adjustPreviewParameters(parameters);
             previewSize = parameters1.getPreviewSize();
+            Log.d("insCamera preview ", previewSize.width + " x " + previewSize.height);
             return parameters1;
         }
 
@@ -243,6 +281,7 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
                 @Override
                 public void run() {
                     showTakenPicture(bitmap);
+                    Log.d(" insCamera picture ", bitmap.getWidth() + " x " + bitmap.getHeight());
                 }
             });
         }
@@ -255,6 +294,7 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
     }
 
     private void showTakenPicture(Bitmap bitmap) {
+        isClickTakePhoto = false;
         vUpperPanel.showNext();
         vLowerPanel.showNext();
         ivTakenPhoto.setImageBitmap(bitmap);
@@ -294,4 +334,12 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
             ivTakenPhoto.setVisibility(View.VISIBLE);
         }
     }
+
+    private Camera.AutoFocusCallback autoFocusCallback = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            Log.d(TAG, "auto success");
+            cameraView.cancelAutoFocus();
+        }
+    };
 }
