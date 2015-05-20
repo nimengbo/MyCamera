@@ -307,7 +307,7 @@ public class SimpleCameraHost implements CameraHost {
 
   protected String getPhotoFilename() {
     String ts=
-        new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA).format(new Date());
 
     return("Photo_" + ts + ".jpg");
   }

@@ -39,6 +39,7 @@
                     android:layout_weight="1" />
 
                 <ImageButton
+                    android:id="@+id/ib_flash"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_marginLeft="24dp"

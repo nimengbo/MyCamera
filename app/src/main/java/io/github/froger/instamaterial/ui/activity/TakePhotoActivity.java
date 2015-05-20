@@ -58,6 +58,7 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
     private static final int STATE_SETUP_PHOTO = 1;
     private boolean isClickTakePhoto = false;
     private boolean isFront = false;
+    private boolean openFlash = false;
     @InjectView(R.id.vRevealBackground)
     RevealBackgroundView vRevealBackground;
     @InjectView(R.id.vPhotoRoot)
@@ -78,6 +79,8 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
     Button btnTakePhoto;
     @InjectView(R.id.ib_switch)
     ImageButton ib_switch;
+    @InjectView(R.id.ib_flash)
+    ImageButton ib_flash;
 
     private boolean pendingIntro;
     private int currentState;
@@ -170,6 +173,16 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
     @OnClick(R.id.ib_switch)
     public void onSwitchClick(){
         cameraView.switchCamera();
+    }
+
+    @OnClick(R.id.ib_flash)
+    public void onSwitchFlash(){
+        if (openFlash) {
+            cameraView.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        } else {
+            cameraView.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        }
+        openFlash = !openFlash;
     }
 
     @OnClick(R.id.btnTakePhoto)
