@@ -185,7 +185,7 @@ public class TakePhotoActivity extends BaseActivity implements RevealBackgroundV
                         Log.d(TAG, "focus success");
                         cameraView.takePicture(true, true);
                     } else {
-                        Toast.makeText(TakePhotoActivity.this, "对焦失败,请重新拍摄", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TakePhotoActivity.this, "focus failure", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
